@@ -1,0 +1,182 @@
+cmake_minimum_required(VERSION 3.21.3)
+
+#Use `cmake --help-policy <POLICY>` to learn more
+cmake_policy(SET CMP0079 NEW)
+cmake_policy(SET CMP0076 NEW)
+cmake_policy(SET CMP0067 NEW)
+
+include(custom_functions.cmake)
+
+#python3 apf.py clean build --toolchain ccsToCMake/toolchain.cmake --target CC32xx
+if (Cc32xx)
+  message(STATUS "Building for Cc32xx")
+
+  project(appName LANGUAGES C CXX)
+
+  set(EXECUTABLE_SUFFIX ".elf")
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+
+  #Order matters!
+  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/cc32xx.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/ccsToCMake/Cc32xx/target.cmake)
+
+  add_custom_command(TARGET ${PROJECT_NAME}${EXECUTABLE_SUFFIX} POST_BUILD
+  COMMAND
+  ${CMAKE_OBJCOPY} ARGS -O binary ${CMAKE_SOURCE_DIR}/Cc32xx_build/${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_SOURCE_DIR}/Cc32xx_build/${PROJECT_NAME}.bin
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_LIST_DIR}
+    COMMENT
+      "Stripping executable"
+    VERBATIM
+  )
+
+  #There is only one partition. So the type could be anything.
+  target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PRIVATE
+    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Spiffs
+    APP_CLOCK_FREQUENCY=0
+    APP_EXTERNAL_CRYSTAL_FREQUENCY=0
+    APP_DEFAULT_STACK_SIZE=2*1024
+    #Sysconfig automatically sets pins, so these will be ignored by the driver.
+    #However, if using an application which is platform agnostic, -1 pins will be rejected as invalid.
+  )
+
+#python3 apf.py clean build --toolchain ccsToCMake/toolchain.cmake --target Tm4c123
+elseif (Tm4c123)
+  message(STATUS "Building for Tm4c123")
+
+  project(appName LANGUAGES C CXX)
+
+  set(EXECUTABLE_SUFFIX ".elf")
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+
+  #Order matters!
+  include(${CMAKE_CURRENT_LIST_DIR}/ccsToCMake/Tm4c123/target.cmake)
+  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/tm4c123.cmake)
+
+  add_custom_command(TARGET ${PROJECT_NAME}${EXECUTABLE_SUFFIX} POST_BUILD
+  COMMAND
+  ${CMAKE_OBJCOPY} ARGS -O binary ${CMAKE_SOURCE_DIR}/Tm4c123_build/${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_SOURCE_DIR}/Tm4c123_build/${PROJECT_NAME}.bin
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_LIST_DIR}
+    COMMENT
+      "Stripping executable"
+    VERBATIM
+  )
+
+  target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PRIVATE
+    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Unknown
+    APP_CLOCK_FREQUENCY=80E6
+    APP_EXTERNAL_CRYSTAL_FREQUENCY=16E6
+    APP_DEFAULT_STACK_SIZE=1024
+  )
+
+#idf.py build
+elseif (ESP_PLATFORM)
+  message(STATUS "Building for ESP")
+
+  #If not set, defaults to all components. Set this to reduce the amount of
+  #components that are built at compile time. Required and linked components
+  #for the ESP main component are located in the "main component" CMakeLists.txt file.
+  set(COMPONENTS
+    main
+  )
+  #Internal IDF cmake files set the target to end in .elf so we don't have much of a choice here.
+  set(EXECUTABLE_SUFFIX ".elf")
+  #include directive must come after the set(COMPONENTS*) directive
+  include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+  #ESP projects require the project line to be declared after the include
+  project(appName)
+  include(AbstractionLayer/esp.cmake)
+
+  target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PRIVATE
+    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::KeyValue
+    APP_CLOCK_FREQUENCY=0
+    APP_EXTERNAL_CRYSTAL_FREQUENCY=0
+    APP_DEFAULT_STACK_SIZE=16*1024
+  )
+  target_compile_definitions(__idf_main PRIVATE $<TARGET_PROPERTY:${PROJECT_NAME}${EXECUTABLE_SUFFIX},COMPILE_DEFINITIONS>)
+
+#python3 apf.py clean build --toolchain ccsToCMake/toolchain.cmake --target Raspbian12Pi4ModelB
+elseif(Raspbian12Pi4ModelB)
+  message(STATUS "Building for Raspbian 12 on Pi 4 Model B")
+  #https://www.raspberrypi.com/documentation/computers/getting-started.html#setting-up-your-raspberry-pi
+  #https://datasheets.raspberrypi.com/rpi4/raspberry-pi-4-datasheet.pdf
+  #https://datasheets.raspberrypi.com/bcm2711/bcm2711-peripherals.pdf
+
+  project(appName LANGUAGES C CXX)
+
+  set(EXECUTABLE_SUFFIX ".elf")
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+
+  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/raspbian12Pi4ModelB.cmake)
+
+  #The partition type when running on a desktop doesn't really matter. It could be set to anything.
+  target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PRIVATE
+    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
+    APP_CLOCK_FREQUENCY=0
+    APP_EXTERNAL_CRYSTAL_FREQUENCY=0
+    APP_DEFAULT_STACK_SIZE=2*1024
+  )
+
+#Even if cross-compiling, your host system name will still be present so cross compiled targets should be evaluated first.
+#python3 apf.py build
+elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
+  message(STATUS "Building for Linux")
+
+  project(appName LANGUAGES C CXX)
+
+  set(EXECUTABLE_SUFFIX ".elf")
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+
+  include(AbstractionLayer/linux.cmake)
+
+  #The partition type when running on a desktop doesn't really matter. It could be set to anything.
+  target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PRIVATE
+    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
+    APP_CLOCK_FREQUENCY=0
+    APP_EXTERNAL_CRYSTAL_FREQUENCY=0
+    APP_DEFAULT_STACK_SIZE=2*1024
+  )
+
+else()
+  message(FATAL_ERROR "Invalid or unsupported target specified")
+endif()
+
+if (${RELEASE_BUILD})
+  message(STATUS "Building release build")
+  target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PRIVATE
+    -O3
+)
+
+#Default to debug build
+else ()
+  message(STATUS "Building debug build")
+  target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PUBLIC
+    -O0
+    -g
+    -gdwarf-3
+    -gstrict-dwarf
+  )
+endif()
+
+#Options for all builds.
+target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+PUBLIC
+  -ffunction-sections
+  -fdata-sections
+  -Wall
+  $<$<COMPILE_LANGUAGE:C:-std=gnu2x>
+  $<$<COMPILE_LANGUAGE:CXX:-std=gnu++23>
+  $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
+  $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
+)
+
+#Cross-platform appName core code
+#For example: add_subdirectory(appName/Main)
