@@ -1,3 +1,10 @@
+###############################################################################
+#File: CMakeLists.txt                                                         #
+#Authour: Ben Haubrich                                                        #
+#Date: April 13th, 2025                                                       #
+#Synopsis: A top-level CMake file that works well with the AbstractionLayer,  #
+#          ccsToCMake, and buildScript                                        #
+###############################################################################
 cmake_minimum_required(VERSION 3.21.3)
 
 #Use `cmake --help-policy <POLICY>` to learn more
@@ -99,6 +106,46 @@ elseif (ESP_PLATFORM)
   )
   target_compile_definitions(__idf_main PRIVATE $<TARGET_PROPERTY:${PROJECT_NAME}${EXECUTABLE_SUFFIX},COMPILE_DEFINITIONS>)
 
+#Even if cross-compiling, your host system name will still be present so cross compiled targets should be evaluated first.
+#python3 apf.py build
+elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
+  message(STATUS "Building for Linux")
+
+  project(appName LANGUAGES C CXX)
+
+  set(EXECUTABLE_SUFFIX ".elf")
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+
+  include(AbstractionLayer/linux.cmake)
+
+  #The partition type when running on a desktop doesn't really matter. It could be set to anything.
+  target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PRIVATE
+    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
+    APP_CLOCK_FREQUENCY=0
+    APP_EXTERNAL_CRYSTAL_FREQUENCY=0
+    APP_DEFAULT_STACK_SIZE=2*1024
+  )
+
+elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
+    message(STATUS "Building for Darwin")
+
+  project(appName LANGUAGES C CXX)
+
+  set(EXECUTABLE_SUFFIX ".Mach-O")
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+
+  include(AbstractionLayer/darwin.cmake)
+
+  #The partition type when running on a desktop doesn't really matter. It could be set to anything.
+  target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PRIVATE
+    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
+    APP_CLOCK_FREQUENCY=0
+    APP_EXTERNAL_CRYSTAL_FREQUENCY=0
+    APP_DEFAULT_STACK_SIZE=2*1024
+  )
+
 #python3 apf.py clean build --toolchain ccsToCMake/toolchain.cmake --target Raspbian12Pi4ModelB
 elseif(Raspbian12Pi4ModelB)
   message(STATUS "Building for Raspbian 12 on Pi 4 Model B")
@@ -112,27 +159,6 @@ elseif(Raspbian12Pi4ModelB)
   add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
 
   include(${CMAKE_SOURCE_DIR}/AbstractionLayer/raspbian12Pi4ModelB.cmake)
-
-  #The partition type when running on a desktop doesn't really matter. It could be set to anything.
-  target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
-  PRIVATE
-    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
-    APP_CLOCK_FREQUENCY=0
-    APP_EXTERNAL_CRYSTAL_FREQUENCY=0
-    APP_DEFAULT_STACK_SIZE=2*1024
-  )
-
-#Even if cross-compiling, your host system name will still be present so cross compiled targets should be evaluated first.
-#python3 apf.py build
-elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-  message(STATUS "Building for Linux")
-
-  project(appName LANGUAGES C CXX)
-
-  set(EXECUTABLE_SUFFIX ".elf")
-  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
-
-  include(AbstractionLayer/linux.cmake)
 
   #The partition type when running on a desktop doesn't really matter. It could be set to anything.
   target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
