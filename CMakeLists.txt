@@ -180,6 +180,24 @@ if (${RELEASE_BUILD})
     -O3
 )
 
+elseif (${SANITIZE_BUILD})
+  message(STATUS "Building sanitize build")
+  target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PUBLIC
+    -O1
+    -g
+    -gdwarf-3
+    -gstrict-dwarf
+    -fsanitize=address
+    -fno-omit-frame-pointer
+    -fsanitize-recover=address,leak,bounds,undefined
+  )
+
+  target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PRIVATE
+    -fsanitize=address,leak,bounds,undefined
+  )
+
 #Default to debug build
 else ()
   message(STATUS "Building debug build")
