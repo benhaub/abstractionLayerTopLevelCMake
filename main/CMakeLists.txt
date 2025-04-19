@@ -20,4 +20,4 @@ idf_component_register(SRCS
 
 #https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/spiffs.html#tools
 #Flashes the webapp files to the flash storage.
-spiffs_create_partition_image(www ../automaticPetFeederWebapp/Static FLASH_IN_PROJECT)
+spiffs_create_partition_image(www ../webapp/Static FLASH_IN_PROJECT)
