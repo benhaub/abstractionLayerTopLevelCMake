@@ -173,6 +173,8 @@ else()
   message(FATAL_ERROR "Invalid or unsupported target specified")
 endif()
 
+#python3 app.py build --build-type release
+#or idf.py build -DRELEASE_BUILD=1
 if (${RELEASE_BUILD})
   message(STATUS "Building release build")
   target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
