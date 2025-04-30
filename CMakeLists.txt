@@ -21,7 +21,7 @@ if (Cc32xx)
   project(appName LANGUAGES C CXX)
 
   set(EXECUTABLE_SUFFIX ".elf")
-  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
 
   #Order matters!
   include(${CMAKE_SOURCE_DIR}/AbstractionLayer/cc32xx.cmake)
@@ -55,7 +55,7 @@ elseif (Tm4c123)
   project(appName LANGUAGES C CXX)
 
   set(EXECUTABLE_SUFFIX ".elf")
-  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
 
   #Order matters!
   include(${CMAKE_CURRENT_LIST_DIR}/ccsToCMake/Tm4c123/target.cmake)
@@ -114,14 +114,14 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
   project(appName LANGUAGES C CXX)
 
   set(EXECUTABLE_SUFFIX ".elf")
-  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
 
   include(AbstractionLayer/linux.cmake)
 
   #The partition type when running on a desktop doesn't really matter. It could be set to anything.
   target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
   PRIVATE
-    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
+    ${CMAKE_CURRENT_LIST_DIR}/main_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
     APP_CLOCK_FREQUENCY=0
     APP_EXTERNAL_CRYSTAL_FREQUENCY=0
     APP_DEFAULT_STACK_SIZE=2*1024
@@ -133,14 +133,14 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
   project(appName LANGUAGES C CXX)
 
   set(EXECUTABLE_SUFFIX ".Mach-O")
-  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
 
   include(AbstractionLayer/darwin.cmake)
 
   #The partition type when running on a desktop doesn't really matter. It could be set to anything.
   target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
   PRIVATE
-    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
+    ${CMAKE_CURRENT_LIST_DIR}/main_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
     APP_CLOCK_FREQUENCY=0
     APP_EXTERNAL_CRYSTAL_FREQUENCY=0
     APP_DEFAULT_STACK_SIZE=2*1024
@@ -156,14 +156,14 @@ elseif(Raspbian12Pi4ModelB)
   project(appName LANGUAGES C CXX)
 
   set(EXECUTABLE_SUFFIX ".elf")
-  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} main.cpp)
+  add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
 
   include(${CMAKE_SOURCE_DIR}/AbstractionLayer/raspbian12Pi4ModelB.cmake)
 
   #The partition type when running on a desktop doesn't really matter. It could be set to anything.
   target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
   PRIVATE
-    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
+    ${CMAKE_CURRENT_LIST_DIR}/main_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
     APP_CLOCK_FREQUENCY=0
     APP_EXTERNAL_CRYSTAL_FREQUENCY=0
     APP_DEFAULT_STACK_SIZE=2*1024
