@@ -218,6 +218,7 @@ PUBLIC
   -ffunction-sections
   -fdata-sections
   -Wall
+  #https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#genex:condition
   $<$<COMPILE_LANGUAGE:C:-std=gnu2x>
   $<$<COMPILE_LANGUAGE:CXX:-std=gnu++23>
   $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
