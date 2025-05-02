@@ -180,7 +180,16 @@ if (${RELEASE_BUILD})
   target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
   PRIVATE
     -O3
-)
+    -flto
+    -fomit-frame-pointer
+    -s
+  )
+
+  target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+  PRIVATE
+    -flto
+    -s
+  )
 
 elseif (${SANITIZE_BUILD})
   message(STATUS "Building sanitize build")
@@ -209,7 +218,7 @@ else ()
     -g
     -gdwarf-3
     -gstrict-dwarf
-  )
+)
 endif()
 
 #Options for all builds.
@@ -219,8 +228,8 @@ PUBLIC
   -fdata-sections
   -Wall
   #https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#genex:condition
-  $<$<COMPILE_LANGUAGE:C:-std=gnu2x>
-  $<$<COMPILE_LANGUAGE:CXX:-std=gnu++23>
+  $<$<COMPILE_LANGUAGE:C>:--std=gnu2x>
+  $<$<COMPILE_LANGUAGE:CXX>:--std=gnu++23>
   $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
   $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
 )
