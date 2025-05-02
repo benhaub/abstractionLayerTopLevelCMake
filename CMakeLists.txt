@@ -175,6 +175,8 @@ endif()
 
 #python3 app.py build --build-type release
 #or idf.py build -DRELEASE_BUILD=1
+#Release builds will persist for all subsequent builds once this is defined.
+#Explicitely set it back to 0 to go back to debug builds.
 if (${RELEASE_BUILD})
   message(STATUS "Building release build")
   target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
@@ -210,6 +212,7 @@ elseif (${SANITIZE_BUILD})
   )
 
 #Default to debug build
+#or idf.py build -DRELEASE_BUILD=0
 else ()
   message(STATUS "Building debug build")
   target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
