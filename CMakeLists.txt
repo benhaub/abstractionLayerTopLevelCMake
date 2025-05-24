@@ -14,7 +14,7 @@ cmake_policy(SET CMP0067 NEW)
 
 include(custom_functions.cmake)
 
-#python3 apf.py clean build --toolchain ccsToCMake/toolchain.cmake --target CC32xx
+#python3 apf.py build --toolchain ccsToCMake/toolchain.cmake --target CC32xx
 if (Cc32xx)
   message(STATUS "Building for Cc32xx")
 
@@ -48,7 +48,7 @@ if (Cc32xx)
     #However, if using an application which is platform agnostic, -1 pins will be rejected as invalid.
   )
 
-#python3 apf.py clean build --toolchain ccsToCMake/toolchain.cmake --target Tm4c123
+#python3 apf.py build --toolchain ccsToCMake/toolchain.cmake --target Tm4c123
 elseif (Tm4c123)
   message(STATUS "Building for Tm4c123")
 
@@ -146,7 +146,7 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
     APP_DEFAULT_STACK_SIZE=2*1024
   )
 
-#python3 apf.py clean build --toolchain ccsToCMake/toolchain.cmake --target Raspbian12Pi4ModelB
+#python3 apf.py build --toolchain ccsToCMake/toolchain.cmake --target Raspbian12Pi4ModelB
 elseif(Raspbian12Pi4ModelB)
   message(STATUS "Building for Raspbian 12 on Pi 4 Model B")
   #https://www.raspberrypi.com/documentation/computers/getting-started.html#setting-up-your-raspberry-pi
