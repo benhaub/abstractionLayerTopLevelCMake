@@ -179,18 +179,13 @@ endif()
 #Explicitely set it back to 0 to go back to debug builds.
 if (${RELEASE_BUILD})
   message(STATUS "Building release build")
+  
+  set_property(TARGET target PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  
   target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
   PRIVATE
-    -O3
-    -flto
+    -O2
     -fomit-frame-pointer
-    -s
-  )
-
-  target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
-  PRIVATE
-    -flto
-    -s
   )
 
 elseif (${SANITIZE_BUILD})
