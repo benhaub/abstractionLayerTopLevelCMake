@@ -208,9 +208,10 @@ PUBLIC
 
   $<$<BOOL:${PROFILE_BUILD}>:-O2>
   $<$<BOOL:${PROFILE_BUILD}>:-g>
-  $<$<BOOL:${PROFILE_BUILD}>:-fprofile-instr-generate>
-  $<$<BOOL:${PROFILE_BUILD}>:-fcoverage-mapping>
-  $<$<BOOL:${PROFILE_BUILD}>:-fno-omit-frame-pointer>
+  $<$<AND:$<BOOL:${PROFILE_BUILD}>,$<STREQUAL:${CMAKE_HOST_SYSTEM_NAME},Linux>>:-pg>
+  $<$<AND:$<BOOL:${PROFILE_BUILD}>,$<STREQUAL:${CMAKE_HOST_SYSTEM_NAME},Darwin>>:-fprofile-instr-generate>
+  $<$<AND:$<BOOL:${PROFILE_BUILD}>,$<STREQUAL:${CMAKE_HOST_SYSTEM_NAME},Darwin>>:-fcoverage-mapping>
+  $<$<AND:$<BOOL:${PROFILE_BUILD}>,$<STREQUAL:${CMAKE_HOST_SYSTEM_NAME},Darwin>>:-fno-omit-frame-pointer>
 
   # Debug build flags (default as in the case of a lack of any other build type specified).
   $<$<AND:$<NOT:$<BOOL:${RELEASE_BUILD}>>,$<NOT:$<BOOL:${SANITIZE_BUILD}>>,$<NOT:$<BOOL:${PROFILE_BUILD}>>>:-O0>
@@ -221,20 +222,16 @@ PUBLIC
 
 target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
 PUBLIC
-  # Sanitize build link flags
-  $<$<BOOL:${SANITIZE_BUILD}>:-fsanitize=address>
-  
-  # Profile build link flags
+  $<$<BOOL:${SANITIZE_BUILD}>:-fsanitize=address> 
   $<$<BOOL:${PROFILE_BUILD}>:-fprofile-instr-generate>
 )
 
 target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
 PUBLIC
-  # Release build definitions
   $<$<BOOL:${RELEASE_BUILD}>:-DCLOUD_CLIENT_LOGGING_ENABLED=0>
   $<$<BOOL:${RELEASE_BUILD}>:-DCLOUD_CLIENT_VERBOSE_LOGGING_ENABLED=0>
   
-  # Debug build definitions (default)
+  $<$<AND:$<BOOL:${PROFILE_BUILD}>,$<STREQUAL:${CMAKE_HOST_SYSTEM_NAME},Linux>>:-pg>
   $<$<AND:$<NOT:$<BOOL:${RELEASE_BUILD}>>,$<NOT:$<BOOL:${SANITIZE_BUILD}>>,$<NOT:$<BOOL:${PROFILE_BUILD}>>>:-DDEBUG_BUILD=1>
 )
 
