@@ -206,6 +206,35 @@ elseif (${SANITIZE_BUILD})
     -fsanitize=address,leak,bounds,undefined
   )
 
+elseif (${PROFILE_BUILD})
+  message(STATUS "Building profile build")
+
+  if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
+    target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+    PRIVATE
+      -pg
+    )
+    target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+    PRIVATE
+      -pg
+    )
+    
+  elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
+    target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+    PUBLIC
+      -O2
+      -g
+      -fprofile-instr-generate
+      -fcoverage-mapping
+      -fno-omit-frame-pointer
+    )
+
+    target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+    PRIVATE
+      -fprofile-instr-generate
+    )
+  endif()
+
 #Default to debug build
 #or idf.py build -DRELEASE_BUILD=0
 else ()
