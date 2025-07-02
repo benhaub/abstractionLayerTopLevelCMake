@@ -173,82 +173,20 @@ else()
   message(FATAL_ERROR "Invalid or unsupported target specified")
 endif()
 
-#python3 app.py build --build-type release
+#python3 app.py build --build-type Release
 #or idf.py build -DRELEASE_BUILD=1
-#Release builds will persist for all subsequent builds once this is defined.
-#Explicitely set it back to 0 to go back to debug builds.
 if (${RELEASE_BUILD})
   message(STATUS "Building release build")
-  
-  set_property(TARGET {PROJECT_NAME}${EXECUTABLE_SUFFIX} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  
-  target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
-  PRIVATE
-    -O2
-    -fomit-frame-pointer
-  )
-
 elseif (${SANITIZE_BUILD})
   message(STATUS "Building sanitize build")
-  target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
-  PUBLIC
-    -O1
-    -g
-    -gdwarf-3
-    -gstrict-dwarf
-    -fsanitize=address
-    -fno-omit-frame-pointer
-    -fsanitize-recover=address,leak,bounds,undefined
-  )
-
-  target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
-  PRIVATE
-    -fsanitize=address,leak,bounds,undefined
-  )
-
 elseif (${PROFILE_BUILD})
   message(STATUS "Building profile build")
-
-  if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-    target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
-    PRIVATE
-      -pg
-    )
-    target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
-    PRIVATE
-      -pg
-    )
-    
-  elseif (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
-    target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
-    PUBLIC
-      -O2
-      -g
-      -fprofile-instr-generate
-      -fcoverage-mapping
-      -fno-omit-frame-pointer
-    )
-
-    target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
-    PRIVATE
-      -fprofile-instr-generate
-    )
-  endif()
-
-#Default to debug build
-#or idf.py build -DRELEASE_BUILD=0
 else ()
+  #Default to debug build
+  #or idf.py build -DRELEASE_BUILD=0
   message(STATUS "Building debug build")
-  target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
-  PUBLIC
-    -O0
-    -g
-    -gdwarf-3
-    -gstrict-dwarf
-)
 endif()
 
-#Options for all builds.
 target_compile_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
 PUBLIC
   -ffunction-sections
@@ -259,6 +197,45 @@ PUBLIC
   $<$<COMPILE_LANGUAGE:CXX>:--std=gnu++23>
   $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
   $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
+
+  $<$<BOOL:${RELEASE_BUILD}>:-fomit-frame-pointer>
+  $<$<BOOL:${RELEASE_BUILD}>:-O2>
+
+  $<$<BOOL:${SANITIZE_BUILD}>:-O1>
+  $<$<BOOL:${SANITIZE_BUILD}>:-g>
+  $<$<BOOL:${SANITIZE_BUILD}>:-fsanitize=address>
+  $<$<BOOL:${SANITIZE_BUILD}>:-fno-omit-frame-pointer>
+
+  $<$<BOOL:${PROFILE_BUILD}>:-O2>
+  $<$<BOOL:${PROFILE_BUILD}>:-g>
+  $<$<BOOL:${PROFILE_BUILD}>:-fprofile-instr-generate>
+  $<$<BOOL:${PROFILE_BUILD}>:-fcoverage-mapping>
+  $<$<BOOL:${PROFILE_BUILD}>:-fno-omit-frame-pointer>
+
+  # Debug build flags (default as in the case of a lack of any other build type specified).
+  $<$<AND:$<NOT:$<BOOL:${RELEASE_BUILD}>>,$<NOT:$<BOOL:${SANITIZE_BUILD}>>,$<NOT:$<BOOL:${PROFILE_BUILD}>>>:-O0>
+  $<$<AND:$<NOT:$<BOOL:${RELEASE_BUILD}>>,$<NOT:$<BOOL:${SANITIZE_BUILD}>>,$<NOT:$<BOOL:${PROFILE_BUILD}>>>:-g>
+  $<$<AND:$<NOT:$<BOOL:${RELEASE_BUILD}>>,$<NOT:$<BOOL:${SANITIZE_BUILD}>>,$<NOT:$<BOOL:${PROFILE_BUILD}>>>:-gdwarf-3>
+  $<$<AND:$<NOT:$<BOOL:${RELEASE_BUILD}>>,$<NOT:$<BOOL:${SANITIZE_BUILD}>>,$<NOT:$<BOOL:${PROFILE_BUILD}>>>:-gstrict-dwarf>
+)
+
+target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+PUBLIC
+  # Sanitize build link flags
+  $<$<BOOL:${SANITIZE_BUILD}>:-fsanitize=address>
+  
+  # Profile build link flags
+  $<$<BOOL:${PROFILE_BUILD}>:-fprofile-instr-generate>
+)
+
+target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
+PUBLIC
+  # Release build definitions
+  $<$<BOOL:${RELEASE_BUILD}>:-DCLOUD_CLIENT_LOGGING_ENABLED=0>
+  $<$<BOOL:${RELEASE_BUILD}>:-DCLOUD_CLIENT_VERBOSE_LOGGING_ENABLED=0>
+  
+  # Debug build definitions (default)
+  $<$<AND:$<NOT:$<BOOL:${RELEASE_BUILD}>>,$<NOT:$<BOOL:${SANITIZE_BUILD}>>,$<NOT:$<BOOL:${PROFILE_BUILD}>>>:-DDEBUG_BUILD=1>
 )
 
 #Cross-platform appName core code
