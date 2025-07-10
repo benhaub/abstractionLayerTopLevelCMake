@@ -83,6 +83,10 @@ elseif (Tm4c123)
 elseif (ESP_PLATFORM)
   message(STATUS "Building for ESP")
 
+  if (${RELEASE_BUILD})
+    set(SDKCONFIG_DEFAULTS "sdkconfig.release")
+  endif()
+
   #If not set, defaults to all components. Set this to reduce the amount of
   #components that are built at compile time. Required and linked components
   #for the ESP main component are located in the "main component" CMakeLists.txt file.
