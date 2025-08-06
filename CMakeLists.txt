@@ -207,7 +207,7 @@ PUBLIC
 
   $<$<BOOL:${SANITIZE_BUILD}>:-O1>
   $<$<BOOL:${SANITIZE_BUILD}>:-g>
-  $<$<BOOL:${SANITIZE_BUILD}>:-fsanitize=address>
+  $<$<BOOL:${SANITIZE_BUILD}>:-fsanitize=${SANITIZE_CHECK}>
   $<$<BOOL:${SANITIZE_BUILD}>:-fno-omit-frame-pointer>
 
   $<$<BOOL:${PROFILE_BUILD}>:-O2>
@@ -226,10 +226,11 @@ PUBLIC
 
 target_link_options(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
 PUBLIC
-  $<$<AND:$<BOOL:${PROFILE_BUILD}>,$<STREQUAL:${CMAKE_HOST_SYSTEM_NAME},Darwin>>:-fsanitize=address> 
+  $<$<BOOL:${SANITIZE_BUILD}>:-fsanitize=${SANITIZE_CHECK}>
+  
+  $<$<AND:$<BOOL:${PROFILE_BUILD}>,$<STREQUAL:${CMAKE_HOST_SYSTEM_NAME},Linux>>:-pg>
   $<$<AND:$<BOOL:${PROFILE_BUILD}>,$<STREQUAL:${CMAKE_HOST_SYSTEM_NAME},Darwin>>:-fprofile-instr-generate>
   $<$<AND:$<BOOL:${PROFILE_BUILD}>,$<STREQUAL:${CMAKE_HOST_SYSTEM_NAME},Darwin>>:-fcoverage-mapping>
-  $<$<AND:$<BOOL:${PROFILE_BUILD}>,$<STREQUAL:${CMAKE_HOST_SYSTEM_NAME},Linux>>:-pg>
 )
 
 target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
