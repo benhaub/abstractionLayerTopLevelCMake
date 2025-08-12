@@ -14,6 +14,8 @@ cmake_policy(SET CMP0067 NEW)
 
 include(custom_functions.cmake)
 
+set(CMAKE_CXX_STANDARD 23)
+
 #python3 apf.py build --toolchain ccsToCMake/toolchain.cmake --target CC32xx
 if (Cc32xx)
   message(STATUS "Building for Cc32xx")
@@ -197,8 +199,6 @@ PUBLIC
   -fdata-sections
   -Wall
   #https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#genex:condition
-  $<$<COMPILE_LANGUAGE:C>:--std=gnu2x>
-  $<$<COMPILE_LANGUAGE:CXX>:--std=gnu++23>
   $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
   $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
 
