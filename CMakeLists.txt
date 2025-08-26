@@ -127,10 +127,11 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
   #The partition type when running on a desktop doesn't really matter. It could be set to anything.
   target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
   PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/main_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
+    MAIN_PARTITION_TYPE=FileSystemTypes::Implementation::Ntfs
     APP_CLOCK_FREQUENCY=0
     APP_EXTERNAL_CRYSTAL_FREQUENCY=0
     APP_DEFAULT_STACK_SIZE=2*1024
+    APP_HOME_DIRECTORY=$ENV{HOME}
   )
 
 elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
@@ -150,6 +151,7 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
     APP_CLOCK_FREQUENCY=0
     APP_EXTERNAL_CRYSTAL_FREQUENCY=0
     APP_DEFAULT_STACK_SIZE=2*1024
+    APP_HOME_DIRECTORY=$ENV{HOME}
   )
 
 #python3 apf.py build --toolchain ccsToCMake/toolchain.cmake --target Raspbian12Pi4ModelB
@@ -173,6 +175,7 @@ elseif(Raspbian12Pi4ModelB)
     APP_CLOCK_FREQUENCY=0
     APP_EXTERNAL_CRYSTAL_FREQUENCY=0
     APP_DEFAULT_STACK_SIZE=2*1024
+    APP_HOME_DIRECTORY=$ENV{HOME}
   )
 
 else()
