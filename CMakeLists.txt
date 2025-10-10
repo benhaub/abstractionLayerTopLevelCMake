@@ -61,6 +61,7 @@ elseif (Tm4c123)
 
   #Order matters!
   include(${CMAKE_CURRENT_LIST_DIR}/ccsToCMake/Tm4c123/target.cmake)
+  #You can also create your own <platform>.cmake if you want to customize some modules instead of editing the default.
   include(${CMAKE_SOURCE_DIR}/AbstractionLayer/tm4c123.cmake)
 
   add_custom_command(TARGET ${PROJECT_NAME}${EXECUTABLE_SUFFIX} POST_BUILD
