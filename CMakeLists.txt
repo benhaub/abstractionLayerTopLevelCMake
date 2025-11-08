@@ -12,8 +12,6 @@ cmake_policy(SET CMP0079 NEW)
 cmake_policy(SET CMP0076 NEW)
 cmake_policy(SET CMP0067 NEW)
 
-include(custom_functions.cmake)
-
 set(CMAKE_CXX_STANDARD 23)
 
 #python3 apf.py build --toolchain ccsToCMake/toolchain.cmake --target CC32xx
@@ -26,7 +24,8 @@ if (Cc32xx)
   add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
 
   #Order matters!
-  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/cc32xx.cmake)
+  include(${CMAKE_SOURCE_DIR}/cc32xx_module_selection.cmake)
+  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/targetPlatform.cmake)
   include(${CMAKE_CURRENT_LIST_DIR}/ccsToCMake/Cc32xx/target.cmake)
 
   add_custom_command(TARGET ${PROJECT_NAME}${EXECUTABLE_SUFFIX} POST_BUILD
@@ -61,8 +60,8 @@ elseif (Tm4c123)
 
   #Order matters!
   include(${CMAKE_CURRENT_LIST_DIR}/ccsToCMake/Tm4c123/target.cmake)
-  #You can also create your own <platform>.cmake if you want to customize some modules instead of editing the default.
-  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/tm4c123.cmake)
+  include(${CMAKE_SOURCE_DIR}/tm4c123_module_selection.cmake)
+  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/targetPlatform.cmake)
 
   add_custom_command(TARGET ${PROJECT_NAME}${EXECUTABLE_SUFFIX} POST_BUILD
   COMMAND
@@ -102,7 +101,9 @@ elseif (ESP_PLATFORM)
   include($ENV{IDF_PATH}/tools/cmake/project.cmake)
   #ESP projects require the project line to be declared after the include
   project(appName)
-  include(AbstractionLayer/esp.cmake)
+  
+  include(${CMAKE_SOURCE_DIR}/esp_module_selection.cmake)
+  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/targetPlatform.cmake)
 
   target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
   PRIVATE
@@ -123,7 +124,8 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
   set(EXECUTABLE_SUFFIX ".elf")
   add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
 
-  include(AbstractionLayer/linux.cmake)
+  include(${CMAKE_SOURCE_DIR}/esp_module_selection.cmake)
+  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/targetPlatform.cmake)
 
   #The partition type when running on a desktop doesn't really matter. It could be set to anything.
   target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
@@ -143,7 +145,8 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
   set(EXECUTABLE_SUFFIX ".Mach-O")
   add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
 
-  include(AbstractionLayer/darwin.cmake)
+  include(${CMAKE_SOURCE_DIR}/darwin_module_selection.cmake)
+  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/targetPlatform.cmake)
 
   #The partition type when running on a desktop doesn't really matter. It could be set to anything.
   target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
@@ -167,7 +170,8 @@ elseif(Raspbian12Pi4ModelB)
   set(EXECUTABLE_SUFFIX ".elf")
   add_executable(${PROJECT_NAME}${EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
 
-  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/raspbian12Pi4ModelB.cmake)
+  include(${CMAKE_SOURCE_DIR}/raspbian12Pi4ModelB_module_selection.cmake)
+  include(${CMAKE_SOURCE_DIR}/AbstractionLayer/targetPlatform.cmake)
 
   #The partition type when running on a desktop doesn't really matter. It could be set to anything.
   target_compile_definitions(${PROJECT_NAME}${EXECUTABLE_SUFFIX}
